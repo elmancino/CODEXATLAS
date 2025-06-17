@@ -14,7 +14,6 @@
       background-size: cover;
       display: flex; align-items: center; justify-content: center;
     }
-    /* Overlay iniziale per sblocco audio */
     #audio-overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
       background: rgba(0,0,0,0.85);
@@ -76,22 +75,20 @@
       stroke-dasharray:1000; stroke-dashoffset:1000;
       animation: drawPortal 3s ease-out forwards 0.5s;
     }
-
-    @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
-    @keyframes glow  { 0%,100%{text-shadow:0 0 5px #deb887;} 50%{text-shadow:0 0 20px #ffd700;} }
-    @keyframes glifoPop { 0%{transform:translateY(-50%) scale(0.5);opacity:0;} 100%{transform:translateY(-50%) scale(1);opacity:0.8;} }
+    @keyframes pulse      { 0%,100%{transform:scale(1);}   50%{transform:scale(1.03);} }
+    @keyframes glow       { 0%,100%{text-shadow:0 0 5px #deb887;}  50%{text-shadow:0 0 20px #ffd700;} }
+    @keyframes glifoPop   { 0%{transform:translateY(-50%) scale(0.5);opacity:0;} 100%{transform:translateY(-50%) scale(1);opacity:0.8;} }
     @keyframes portalOpen { to{opacity:1;} }
-    @keyframes drawPortal  { to{stroke-dashoffset:0;} }
+    @keyframes drawPortal { to{stroke-dashoffset:0;} }
   </style>
 </head>
 <body>
 
-  <!-- Overlay iniziale -->
   <div id="audio-overlay">
     Tocca per sbloccare il suono del countdown
   </div>
 
-  <!-- Audio con playsinline per iOS -->
+  <!-- Audio -->
   <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
   <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
   <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline></audio>
@@ -119,7 +116,6 @@
   </div>
 
   <script>
-    // Riferimenti DOM
     const EL = {
       days:     document.getElementById('days'),
       hours:    document.getElementById('hours'),
@@ -138,7 +134,15 @@
       voice:     document.getElementById('voice')
     };
 
-    // Configurazioni
+    // Sblocca tutti gli audio con un breve play/pause
+    function unlockAllAudio() {
+      Object.values(sounds).forEach(aud => {
+        aud.play()
+           .then(() => { aud.pause(); aud.currentTime = 0; })
+           .catch(()=>{});
+      });
+    }
+
     const prophecies = [
       { t: 3*24*3600, text: "I cieli si oscurano..." },
       { t: 2*24*3600, text: "La morte sopraggiunge dall'alto..." },
@@ -152,26 +156,20 @@
     ];
     const secretCode = "TRUST - THOT";
 
-    // Date fisse di esempio
+    // Date di esempio
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T09:58:00');
+    const endDate   = new Date('2025-06-17T10:04:00');
 
     let manualOverride = false;
     let audioEnabled   = false;
 
-    // Sblocco e “unlock” di tutti gli audio al primo tap
+    // Overlay click: abilita audio e sblocca
     document.getElementById('audio-overlay').addEventListener('click', () => {
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
-      // per sbloccare tutti i file audio
-      Object.values(sounds).forEach(aud => {
-        aud.play()
-           .then(() => { aud.pause(); aud.currentTime = 0; })
-           .catch(()=>{});
-      });
-      // subito un ticchettio
-      sounds.tick.currentTime = 0;
-      sounds.tick.play().catch(()=>{});
+      unlockAllAudio();
+      // Forza un aggiornamento ora, in caso tu sia già sotto i 10s
+      updateCountdown();
     });
 
     function updateCountdown() {
@@ -179,19 +177,16 @@
       let diff  = endDate - now;
       if (diff < 0) diff = 0;
 
-      // Calcolo tempi
       const days    = Math.floor(diff/1000/3600/24);
       const hours   = Math.floor((diff/1000/3600)%24);
       const minutes = Math.floor((diff/1000/60)%60);
       const seconds = Math.floor((diff/1000)%60);
 
-      // Aggiorna DOM
       EL.days.textContent    = days;
       EL.hours.textContent   = String(hours).padStart(2,'0');
       EL.minutes.textContent = String(minutes).padStart(2,'0');
       EL.seconds.textContent = String(seconds).padStart(2,'0');
 
-      // Profezie automatiche
       if (!manualOverride) {
         for (let p of prophecies) {
           if (diff/1000 <= p.t) {
@@ -201,19 +196,18 @@
         }
       }
 
-      // Glifo dinamico
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
       const idx        = Math.min(daysPassed, glifiFiles.length - 1);
       EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
 
-      // Lettera segreta
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
-      // Audio (solo se sbloccato)
       if (audioEnabled) {
+        // ticchettio ogni secondo
         sounds.tick.currentTime = 0;
         sounds.tick.play().catch(()=>{});
+        // soglie
         if (seconds===0 && minutes===0 && hours===0 && days>0)
           sounds.bell.play().catch(()=>{});
         if (diff/1000 <= 10)
@@ -222,7 +216,6 @@
           sounds.crescendo.play().catch(()=>{});
       }
 
-      // Fine countdown
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
@@ -231,7 +224,7 @@
       }
     }
 
-    // Click profezia
+    // Profezia a click
     EL.prophecy.addEventListener('click', () => {
       const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
       EL.prophecy.textContent = `"${rand.text}"`;
