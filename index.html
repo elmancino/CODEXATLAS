@@ -66,12 +66,39 @@
       opacity:0; pointer-events:none; z-index:5;
     }
     #portal.open { animation:portalOpen 3s ease-out forwards; }
-    #portal svg {
-      width:50vmin; height:50vmin;
-      fill:none; stroke:#ffd700; stroke-width:10;
-      stroke-dasharray:1000; stroke-dashoffset:1000;
-      animation:drawPortal 3s ease-out forwards .5s;
+
+    /* nuovo wrapper per svg+testo */
+    #portal-content {
+      position: relative;
+      width: 50vmin;
+      height: 50vmin;
     }
+    #portal svg {
+      width: 100%;
+      height: 100%;
+      fill: none; stroke: #ffd700; stroke-width: 10;
+      stroke-dasharray: 1000; stroke-dashoffset: 1000;
+      animation: drawPortal 3s ease-out forwards .5s;
+    }
+    #portal-text {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #ffd700;
+      pointer-events: none;
+      font-family: 'Cinzel Decorative', serif;
+    }
+    #portal-text .line1 {
+      font-size: 4vmin;
+      line-height: 1;
+    }
+    #portal-text .line2 {
+      font-size: 3vmin;
+      line-height: 1;
+      margin-top: 0.2em;
+    }
+
     @keyframes pulse      {0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
     @keyframes glow       {0%,100%{text-shadow:0 0 5px #deb887;}50%{text-shadow:0 0 20px #ffd700;}}
     @keyframes glifoPop   {0%{transform:translateY(-50%) scale(.5);opacity:0;}100%{transform:translateY(-50%) scale(1);opacity:.8;}}
@@ -83,7 +110,7 @@
 
   <div id="audio-overlay">Avvia e vedrai la fine</div>
 
-  <!-- Audio; heartbeat in loop -->
+  <!-- Audio -->
   <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
   <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
   <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline loop></audio>
@@ -106,7 +133,15 @@
   </div>
 
   <div id="portal">
-    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80"/></svg>
+    <div id="portal-content">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80"/>
+      </svg>
+      <div id="portal-text">
+        <div class="line1">12-12-12</div>
+        <div class="line2">12:12</div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -129,7 +164,6 @@
       nuke:      document.getElementById('nuke')
     };
 
-    // Unlock audio on first tap
     function unlockAllAudio() {
       Object.values(sounds).forEach(aud => {
         aud.play().then(() => { aud.pause(); aud.currentTime = 0; }).catch(()=>{});
@@ -147,25 +181,24 @@
       'glifi-maya-1.png','glifi-maya-2.png','glifi-maya-3.png',
       'glifi-maya-4.png','glifi-maya-5.png','glifi-maya-6.png'
     ];
-    const secretCode = "TRUST-THOT-";
+    const secretCode = "TRUST-THOT";
 
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T10:50:00');
+    const endDate   = new Date('2025-06-17T11:00:00');
 
-    let manualOverride  = false;
-    let audioEnabled    = false;
-    let bellPlayed      = false;
-    let crescendoPlayed = false;
+    let manualOverride   = false;
+    let audioEnabled     = false;
+    let bellPlayed       = false;
+    let crescendoPlayed  = false;
     let heartbeatStarted = false;
 
     document.getElementById('audio-overlay').addEventListener('click', () => {
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
       unlockAllAudio();
-      updateCountdown(); // in case already below thresholds
+      updateCountdown();
     });
 
-    // After voiceover, play nuke
     sounds.voice.addEventListener('ended', () => {
       if (audioEnabled) sounds.nuke.play().catch(()=>{});
     });
@@ -185,7 +218,6 @@
       EL.minutes.textContent = String(minutes).padStart(2,'0');
       EL.seconds.textContent = String(seconds).padStart(2,'0');
 
-      // Profezia
       if (!manualOverride) {
         for (let p of prophecies) {
           if (diff/1000 <= p.t) {
@@ -195,13 +227,11 @@
         }
       }
 
-      // Glifo
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
       const idx        = Math.min(daysPassed, glifiFiles.length-1);
       EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
 
-      // Secret letter
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
       // Tick
@@ -210,7 +240,7 @@
         sounds.tick.play().catch(()=>{});
       }
 
-      // Bell at 60s for 5s
+      // Bell a 60s per 3s
       if (audioEnabled && !bellPlayed && diff/1000 <= 60) {
         bellPlayed = true;
         sounds.bell.currentTime = 0;
@@ -218,24 +248,24 @@
         setTimeout(() => {
           sounds.bell.pause();
           sounds.bell.currentTime = 0;
-        }, 5000);
+        }, 3000);
       }
 
-      // Heartbeat start at 20s (once), loops via attribute
-      if (audioEnabled && !heartbeatStarted && diff/1000 <= 20) {
+      // Heartbeat a 30s (una sola volta), poi loopa
+      if (audioEnabled && !heartbeatStarted && diff/1000 <= 30) {
         heartbeatStarted = true;
         sounds.heartbeat.currentTime = 0;
         sounds.heartbeat.play().catch(()=>{});
       }
 
-      // Crescendo at 5s
+      // Crescendo a 5s
       if (audioEnabled && !crescendoPlayed && diff/1000 <= 5) {
         crescendoPlayed = true;
         sounds.crescendo.currentTime = 0;
         sounds.crescendo.play().catch(()=>{});
       }
 
-      // End: stop heartbeat, tick, then voice
+      // Fine
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
