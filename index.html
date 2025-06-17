@@ -43,7 +43,7 @@
       transform:translateX(-50%);
       font-size:1.5rem; color:#ffd700;
       text-shadow:0 0 10px #ffd700;
-      animation:glow 3s ease-in-out infinite;
+      animation: glow 3s ease-in-out infinite;
       cursor:pointer; white-space:nowrap; z-index:3;
     }
     #glifo {
@@ -55,8 +55,8 @@
     #secret {
       position:absolute; bottom:-2rem; left:50%;
       transform:translateX(-50%);
-      font-size:1.2rem; color:rgba(255,255,255,0.3);
-      letter-spacing:.5rem; animation:glow 4s ease-in-out infinite;
+      font-size:1.2rem; color:rgba(255,255,255,0.8);
+      letter-spacing:.5rem; animation: glow 4s ease-in-out infinite;
       z-index:3;
     }
     #portal {
@@ -81,14 +81,12 @@
 </head>
 <body>
 
-  <div id="audio-overlay">
-    Avvia e vedrai la fine
-  </div>
+  <div id="audio-overlay">Avvia e vedrai la fine</div>
 
-  <!-- Audio con playsinline per iOS -->
+  <!-- Audio con playsinline per iOS; heartbeat in loop -->
   <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
   <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
-  <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline></audio>
+  <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline loop></audio>
   <audio id="crescendo" src="crescendo.mp3" preload="auto" playsinline></audio>
   <audio id="voice"     src="voiceover.mp3" preload="auto" playsinline></audio>
   <audio id="nuke"      src="nuke.mp3"      preload="auto" playsinline></audio>
@@ -131,7 +129,7 @@
       nuke:      document.getElementById('nuke')
     };
 
-    // Sblocca audio
+    // Unlock audio
     function unlockAllAudio() {
       Object.values(sounds).forEach(aud => {
         aud.play().then(() => { aud.pause(); aud.currentTime = 0; })
@@ -139,36 +137,42 @@
       });
     }
 
-    // Soglie e flag
-    let manualOverride   = false;
-    let audioEnabled     = false;
-    let heartbeatPlayed  = false;
-    let crescendoPlayed  = false;
-    let bellPlayed       = false;
+    const prophecies = [
+      { t:3*24*3600, text:"I cieli si oscurano..." },
+      { t:2*24*3600, text:"La morte sopraggiunge dall'alto..." },
+      { t:1*24*3600, text:"Cerca nelle sabbie..." },
+      { t:   3600,   text:"Il portale si chiude..." },
+      { t:      0,   text:"È il momento di scegliere." }
+    ];
+    const glifiFiles = [
+      'glifi-maya-1.png','glifi-maya-2.png','glifi-maya-3.png',
+      'glifi-maya-4.png','glifi-maya-5.png','glifi-maya-6.png'
+    ];
+    const secretCode = "TRUST-THOT";
 
-    // Date fisse
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T10:38:00');
+    const endDate   = new Date('2025-06-17T10:44:00');
 
-    // Overlay tap
+    let manualOverride  = false;
+    let audioEnabled    = false;
+    let bellPlayed      = false;
+    let crescendoPlayed = false;
+
     document.getElementById('audio-overlay').addEventListener('click', () => {
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
       unlockAllAudio();
-      updateCountdown(); // per gestire subito soglie se raggiunte
+      updateCountdown(); // se già sotto soglie
     });
 
-    // Quando il voiceover termina, suona la Nuke
+    // Play nuke after voiceover ends
     sounds.voice.addEventListener('ended', () => {
-      if (audioEnabled) {
-        sounds.nuke.currentTime = 0;
-        sounds.nuke.play().catch(() => {});
-      }
+      if (audioEnabled) sounds.nuke.play().catch(()=>{});
     });
 
-    function updateCountdown(){
-      const now = new Date();
-      let diff  = endDate - now;
+    function updateCountdown() {
+      const now  = new Date();
+      let diff   = endDate - now;
       if (diff < 0) diff = 0;
 
       const days    = Math.floor(diff/1000/3600/24);
@@ -181,60 +185,65 @@
       EL.minutes.textContent = String(minutes).padStart(2,'0');
       EL.seconds.textContent = String(seconds).padStart(2,'0');
 
-      // Profezia, glifo e secret (omessi per brevità, restano invariati)
-
-      // Tick continuo
-      if (audioEnabled && diff > 0) {
-        sounds.tick.currentTime = 0;
-        sounds.tick.play().catch(() => {});
+      if (!manualOverride) {
+        for (let p of prophecies) {
+          if (diff/1000 <= p.t) {
+            EL.prophecy.textContent = `"${p.text}"`;
+            break;
+          }
+        }
       }
 
-      // Campana a 60s per 5s
+      const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
+      const daysPassed = totalDays - days;
+      const idx        = Math.min(daysPassed, glifiFiles.length-1);
+      EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
+
+      // Secret letter cycling
+      EL.secret.textContent = secretCode[seconds % secretCode.length];
+
+      // Tick
+      if (audioEnabled && diff > 0) {
+        sounds.tick.currentTime = 0;
+        sounds.tick.play().catch(()=>{});
+      }
+
+      // Bell at 60s for 5s
       if (audioEnabled && !bellPlayed && diff/1000 <= 60) {
         bellPlayed = true;
-        sounds.bell.currentTime = 0;
-        sounds.bell.play().catch(() => {});
-        setTimeout(() => {
+        sounds.bell.play().catch(()=>{});
+        setTimeout(()=>{
           sounds.bell.pause();
           sounds.bell.currentTime = 0;
         }, 5000);
       }
 
-      // Heartbeat a 20s
-      if (audioEnabled && !heartbeatPlayed && diff/1000 <= 20) {
-        heartbeatPlayed = true;
+      // Heartbeat auto-loops (taglia pausa solo alla fine)
+      if (audioEnabled && diff === 0) {
+        // stop heartbeat loop
+        sounds.heartbeat.pause();
         sounds.heartbeat.currentTime = 0;
-        sounds.heartbeat.play().catch(() => {});
       }
 
-      // Crescendo a 5s
+      // Crescendo at 5s
       if (audioEnabled && !crescendoPlayed && diff/1000 <= 5) {
         crescendoPlayed = true;
-        sounds.crescendo.currentTime = 0;
-        sounds.crescendo.play().catch(() => {});
+        sounds.crescendo.play().catch(()=>{});
       }
 
-      // Fine countdown
+      // End
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
         sounds.tick.pause();
         if (audioEnabled) {
           sounds.voice.currentTime = 0;
-          sounds.voice.play().catch(() => {});
+          sounds.voice.play().catch(()=>{});
         }
       }
     }
 
-    // Override profezia al click
     EL.prophecy.addEventListener('click', () => {
-      const prophecies = [
-        {t:3*24*3600, text:"I cieli si oscurano..."},
-        {t:2*24*3600, text:"La morte sopraggiunge dall'alto..."},
-        {t:1*24*3600, text:"Cerca nelle sabbie..."},
-        {t:   3600,   text:"Il portale si chiude..."},
-        {t:      0,   text:"È il momento di scegliere."}
-      ];
       const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
       EL.prophecy.textContent = `"${rand.text}"`;
       manualOverride = true;
