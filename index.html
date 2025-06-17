@@ -88,7 +88,7 @@
     Tocca per sbloccare il suono del countdown
   </div>
 
-  <!-- Audio -->
+  <!-- Audio con playsinline per iOS -->
   <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
   <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
   <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline></audio>
@@ -134,12 +134,11 @@
       voice:     document.getElementById('voice')
     };
 
-    // Sblocca tutti gli audio con un breve play/pause
+    // Sblocca tutti gli audio
     function unlockAllAudio() {
       Object.values(sounds).forEach(aud => {
-        aud.play()
-           .then(() => { aud.pause(); aud.currentTime = 0; })
-           .catch(()=>{});
+        aud.play().then(()=>{ aud.pause(); aud.currentTime = 0; })
+                  .catch(()=>{});
       });
     }
 
@@ -156,20 +155,18 @@
     ];
     const secretCode = "TRUST - THOT";
 
-    // Date di esempio
+    // Date fisse
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T10:04:00');
+    const endDate   = new Date('2025-06-17T10:10:00');
 
     let manualOverride = false;
     let audioEnabled   = false;
 
-    // Overlay click: abilita audio e sblocca
     document.getElementById('audio-overlay').addEventListener('click', () => {
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
       unlockAllAudio();
-      // Forza un aggiornamento ora, in caso tu sia già sotto i 10s
-      updateCountdown();
+      updateCountdown(); // forzare subito heartbeat se necessario
     });
 
     function updateCountdown() {
@@ -203,28 +200,38 @@
 
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
-      if (audioEnabled) {
-        // ticchettio ogni secondo
+      if (audioEnabled && diff > 0) {
+        // TICK
         sounds.tick.currentTime = 0;
         sounds.tick.play().catch(()=>{});
-        // soglie
-        if (seconds===0 && minutes===0 && hours===0 && days>0)
+      }
+
+      if (audioEnabled) {
+        // Soglie
+        if (seconds === 0 && minutes === 0 && hours === 0 && days > 0) {
+          sounds.bell.currentTime = 0;
           sounds.bell.play().catch(()=>{});
-        if (diff/1000 <= 10)
+        }
+        if (diff/1000 <= 10) {
+          sounds.heartbeat.currentTime = 0;
           sounds.heartbeat.play().catch(()=>{});
-        if (diff/1000 <= 5)
+        }
+        if (diff/1000 <= 5) {
+          sounds.crescendo.currentTime = 0;
           sounds.crescendo.play().catch(()=>{});
+        }
       }
 
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
-        if (audioEnabled)
+        if (audioEnabled) {
+          sounds.voice.currentTime = 0;
           sounds.voice.play().catch(()=>{});
+        }
       }
     }
 
-    // Profezia a click
     EL.prophecy.addEventListener('click', () => {
       const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
       EL.prophecy.textContent = `"${rand.text}"`;
