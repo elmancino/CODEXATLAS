@@ -83,7 +83,7 @@
 
   <div id="audio-overlay">Avvia e vedrai la fine</div>
 
-  <!-- Audio con playsinline per iOS; heartbeat in loop -->
+  <!-- Audio; heartbeat in loop -->
   <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
   <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
   <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline loop></audio>
@@ -129,11 +129,10 @@
       nuke:      document.getElementById('nuke')
     };
 
-    // Unlock audio
+    // Unlock audio on first tap
     function unlockAllAudio() {
       Object.values(sounds).forEach(aud => {
-        aud.play().then(() => { aud.pause(); aud.currentTime = 0; })
-           .catch(() => {});
+        aud.play().then(() => { aud.pause(); aud.currentTime = 0; }).catch(()=>{});
       });
     }
 
@@ -148,31 +147,32 @@
       'glifi-maya-1.png','glifi-maya-2.png','glifi-maya-3.png',
       'glifi-maya-4.png','glifi-maya-5.png','glifi-maya-6.png'
     ];
-    const secretCode = " - TRUST-THOT";
+    const secretCode = "TRUST-THOT-";
 
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T10:44:00');
+    const endDate   = new Date('2025-06-17T10:50:00');
 
     let manualOverride  = false;
     let audioEnabled    = false;
     let bellPlayed      = false;
     let crescendoPlayed = false;
+    let heartbeatStarted = false;
 
     document.getElementById('audio-overlay').addEventListener('click', () => {
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
       unlockAllAudio();
-      updateCountdown(); // se già sotto soglie
+      updateCountdown(); // in case already below thresholds
     });
 
-    // Play nuke after voiceover ends
+    // After voiceover, play nuke
     sounds.voice.addEventListener('ended', () => {
       if (audioEnabled) sounds.nuke.play().catch(()=>{});
     });
 
     function updateCountdown() {
-      const now  = new Date();
-      let diff   = endDate - now;
+      const now = new Date();
+      let diff  = endDate - now;
       if (diff < 0) diff = 0;
 
       const days    = Math.floor(diff/1000/3600/24);
@@ -185,6 +185,7 @@
       EL.minutes.textContent = String(minutes).padStart(2,'0');
       EL.seconds.textContent = String(seconds).padStart(2,'0');
 
+      // Profezia
       if (!manualOverride) {
         for (let p of prophecies) {
           if (diff/1000 <= p.t) {
@@ -194,12 +195,13 @@
         }
       }
 
+      // Glifo
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
       const idx        = Math.min(daysPassed, glifiFiles.length-1);
       EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
 
-      // Secret letter cycling
+      // Secret letter
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
       // Tick
@@ -211,31 +213,35 @@
       // Bell at 60s for 5s
       if (audioEnabled && !bellPlayed && diff/1000 <= 60) {
         bellPlayed = true;
+        sounds.bell.currentTime = 0;
         sounds.bell.play().catch(()=>{});
-        setTimeout(()=>{
+        setTimeout(() => {
           sounds.bell.pause();
           sounds.bell.currentTime = 0;
         }, 5000);
       }
 
-      // Heartbeat auto-loops (taglia pausa solo alla fine)
-      if (audioEnabled && diff === 0) {
-        // stop heartbeat loop
-        sounds.heartbeat.pause();
+      // Heartbeat start at 20s (once), loops via attribute
+      if (audioEnabled && !heartbeatStarted && diff/1000 <= 20) {
+        heartbeatStarted = true;
         sounds.heartbeat.currentTime = 0;
+        sounds.heartbeat.play().catch(()=>{});
       }
 
       // Crescendo at 5s
       if (audioEnabled && !crescendoPlayed && diff/1000 <= 5) {
         crescendoPlayed = true;
+        sounds.crescendo.currentTime = 0;
         sounds.crescendo.play().catch(()=>{});
       }
 
-      // End
+      // End: stop heartbeat, tick, then voice
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
         sounds.tick.pause();
+        sounds.heartbeat.pause();
+        sounds.heartbeat.currentTime = 0;
         if (audioEnabled) {
           sounds.voice.currentTime = 0;
           sounds.voice.play().catch(()=>{});
