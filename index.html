@@ -14,6 +14,7 @@
       background-size: cover;
       display: flex; align-items: center; justify-content: center;
     }
+    /* Overlay iniziale per sbloccare il suono */
     #audio-overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
       background: rgba(0,0,0,0.85);
@@ -75,8 +76,8 @@
       stroke-dasharray:1000; stroke-dashoffset:1000;
       animation: drawPortal 3s ease-out forwards 0.5s;
     }
-    @keyframes pulse      { 0%,100%{transform:scale(1);}   50%{transform:scale(1.03);} }
-    @keyframes glow       { 0%,100%{text-shadow:0 0 5px #deb887;}  50%{text-shadow:0 0 20px #ffd700;} }
+    @keyframes pulse      { 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
+    @keyframes glow       { 0%,100%{text-shadow:0 0 5px #deb887;} 50%{text-shadow:0 0 20px #ffd700;} }
     @keyframes glifoPop   { 0%{transform:translateY(-50%) scale(0.5);opacity:0;} 100%{transform:translateY(-50%) scale(1);opacity:0.8;} }
     @keyframes portalOpen { to{opacity:1;} }
     @keyframes drawPortal { to{stroke-dashoffset:0;} }
@@ -85,7 +86,7 @@
 <body>
 
   <div id="audio-overlay">
-    Tocca per sbloccare il suono del countdown
+    Tocca per sbloccare il’audio del countdown
   </div>
 
   <!-- Audio con playsinline per iOS -->
@@ -134,11 +135,10 @@
       voice:     document.getElementById('voice')
     };
 
-    // Sblocca tutti gli audio
+    // Sblocco audio
     function unlockAllAudio() {
-      Object.values(sounds).forEach(aud => {
-        aud.play().then(()=>{ aud.pause(); aud.currentTime = 0; })
-                  .catch(()=>{});
+      Object.values(sounds).forEach(aud=>{
+        aud.play().then(()=>{ aud.pause(); aud.currentTime=0; }).catch(()=>{});
       });
     }
 
@@ -157,22 +157,25 @@
 
     // Date fisse
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T10:10:00');
+    const endDate   = new Date('2025-06-17T10:15:00');
 
-    let manualOverride = false;
-    let audioEnabled   = false;
+    let manualOverride   = false;
+    let audioEnabled     = false;
+    let heartbeatPlayed  = false;
+    let crescendoPlayed  = false;
 
-    document.getElementById('audio-overlay').addEventListener('click', () => {
+    // Click overlay per sblocco
+    document.getElementById('audio-overlay').addEventListener('click',()=>{
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
       unlockAllAudio();
-      updateCountdown(); // forzare subito heartbeat se necessario
+      updateCountdown(); // se sei già sotto i 10s parte subito il battito
     });
 
-    function updateCountdown() {
-      const now = new Date();
-      let diff  = endDate - now;
-      if (diff < 0) diff = 0;
+    function updateCountdown(){
+      const now  = new Date();
+      let diff   = endDate - now;
+      if(diff < 0) diff = 0;
 
       const days    = Math.floor(diff/1000/3600/24);
       const hours   = Math.floor((diff/1000/3600)%24);
@@ -184,61 +187,67 @@
       EL.minutes.textContent = String(minutes).padStart(2,'0');
       EL.seconds.textContent = String(seconds).padStart(2,'0');
 
-      if (!manualOverride) {
-        for (let p of prophecies) {
-          if (diff/1000 <= p.t) {
+      if(!manualOverride){
+        for(let p of prophecies){
+          if(diff/1000 <= p.t){
             EL.prophecy.textContent = `"${p.text}"`;
             break;
           }
         }
       }
 
+      // Glifo dinamico
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
-      const idx        = Math.min(daysPassed, glifiFiles.length - 1);
+      const idx        = Math.min(daysPassed, glifiFiles.length-1);
       EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
 
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
-      if (audioEnabled && diff > 0) {
-        // TICK
+      // Tick finché diff>0
+      if(audioEnabled && diff>0){
         sounds.tick.currentTime = 0;
         sounds.tick.play().catch(()=>{});
       }
 
-      if (audioEnabled) {
-        // Soglie
-        if (seconds === 0 && minutes === 0 && hours === 0 && days > 0) {
-          sounds.bell.currentTime = 0;
-          sounds.bell.play().catch(()=>{});
-        }
-        if (diff/1000 <= 10) {
-          sounds.heartbeat.currentTime = 0;
-          sounds.heartbeat.play().catch(()=>{});
-        }
-        if (diff/1000 <= 5) {
-          sounds.crescendo.currentTime = 0;
-          sounds.crescendo.play().catch(()=>{});
-        }
+      // Heartbeat a 10s
+      if(audioEnabled && !heartbeatPlayed && diff/1000 <= 10){
+        sounds.heartbeat.play().catch(()=>{});
+        heartbeatPlayed = true;
       }
 
-      if (diff === 0) {
+      // Crescendo a 5s
+      if(audioEnabled && !crescendoPlayed && diff/1000 <= 5){
+        sounds.crescendo.play().catch(()=>{});
+        crescendoPlayed = true;
+      }
+
+      // Bell quando minuti/ore/giorni = 0 ma giorni>0
+      if(audioEnabled && seconds===0 && minutes===0 && hours===0 && days>0){
+        sounds.bell.play().catch(()=>{});
+      }
+
+      // Fine countdown
+      if(diff===0){
         clearInterval(timer);
         EL.portal.classList.add('open');
-        if (audioEnabled) {
-          sounds.voice.currentTime = 0;
+        // Ferma tick
+        sounds.tick.pause();
+        // Voiceover
+        if(audioEnabled){
           sounds.voice.play().catch(()=>{});
         }
       }
     }
 
-    EL.prophecy.addEventListener('click', () => {
+    // Click sulla profezia
+    EL.prophecy.addEventListener('click',()=>{
       const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
       EL.prophecy.textContent = `"${rand.text}"`;
       manualOverride = true;
     });
 
-    const timer = setInterval(updateCountdown, 1000);
+    const timer = setInterval(updateCountdown,1000);
     updateCountdown();
   </script>
 
