@@ -14,58 +14,55 @@
       background-size: cover;
       display: flex; align-items: center; justify-content: center;
     }
-    /* Overlay iniziale per sbloccare il suono */
+    /* Overlay per sbloccare audio */
     #audio-overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.85);
-      color: #ffd700;
+      background: rgba(0,0,0,0.85); color: #ffd700;
       display: flex; align-items: center; justify-content: center;
       text-align: center; padding: 1rem;
       font-size: 1.5rem; cursor: pointer; z-index: 10;
     }
     #wrapper {
       position: relative; text-align: center;
-      width: 100%; max-width: 600px;
+      width:100%; max-width:600px;
       animation: pulse 4s ease-in-out infinite;
-      transform-origin: center center; overflow: visible;
+      transform-origin:center center; overflow:visible;
     }
     #countdown {
       background: rgba(0,0,0,0.7);
-      padding: 2rem 3rem;
-      border: 4px solid #deb887;
-      border-radius: 12px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.7);
-      z-index: 2;
+      padding:2rem 3rem; border:4px solid #deb887;
+      border-radius:12px; box-shadow:0 0 25px rgba(0,0,0,0.7);
+      z-index:2;
     }
     #countdown div {
-      margin: .5rem 0; font-size: 2rem;
+      margin:.5rem 0; font-size:2rem;
       animation: glow 2.5s ease-in-out infinite;
     }
-    #countdown span { display: inline-block; min-width: 3ch; }
+    #countdown span { display:inline-block; min-width:3ch; }
     #prophecy {
-      position: absolute; top: -3rem; left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.5rem; color: #ffd700;
-      text-shadow: 0 0 10px #ffd700;
+      position:absolute; top:-3rem; left:50%;
+      transform:translateX(-50%);
+      font-size:1.5rem; color:#ffd700;
+      text-shadow:0 0 10px #ffd700;
       animation: glow 3s ease-in-out infinite;
-      cursor: pointer; white-space: nowrap; z-index: 3;
+      cursor:pointer; white-space:nowrap; z-index:3;
     }
     #glifo {
-      position: absolute; top: 50%; right: -4rem;
-      width: 4rem; height: 4rem;
-      background-size: contain; background-repeat: no-repeat;
-      opacity: 0.8; animation: glifoPop 1s ease-out forwards;
+      position:absolute; top:50%; right:-4rem;
+      width:4rem; height:4rem;
+      background-size:contain; background-repeat:no-repeat;
+      opacity:.8; animation:glifoPop 1s ease-out forwards;
     }
     #secret {
-      position: absolute; bottom: -2rem; left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.2rem; color: rgba(255,255,255,0.3);
-      letter-spacing: 0.5rem; animation: glow 4s ease-in-out infinite;
-      z-index: 3;
+      position:absolute; bottom:-2rem; left:50%;
+      transform:translateX(-50%);
+      font-size:1.2rem; color:rgba(255,255,255,0.3);
+      letter-spacing:.5rem; animation:glow 4s ease-in-out infinite;
+      z-index:3;
     }
     #portal {
-      position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.9);
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.9);
       display:flex; align-items:center; justify-content:center;
       opacity:0; pointer-events:none; z-index:5;
     }
@@ -74,22 +71,22 @@
       width:50vmin; height:50vmin;
       fill:none; stroke:#ffd700; stroke-width:10;
       stroke-dasharray:1000; stroke-dashoffset:1000;
-      animation: drawPortal 3s ease-out forwards 0.5s;
+      animation: drawPortal 3s ease-out forwards .5s;
     }
-    @keyframes pulse      { 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
-    @keyframes glow       { 0%,100%{text-shadow:0 0 5px #deb887;} 50%{text-shadow:0 0 20px #ffd700;} }
-    @keyframes glifoPop   { 0%{transform:translateY(-50%) scale(0.5);opacity:0;} 100%{transform:translateY(-50%) scale(1);opacity:0.8;} }
-    @keyframes portalOpen { to{opacity:1;} }
-    @keyframes drawPortal { to{stroke-dashoffset:0;} }
+    @keyframes pulse      {0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
+    @keyframes glow       {0%,100%{text-shadow:0 0 5px #deb887;}50%{text-shadow:0 0 20px #ffd700;}}
+    @keyframes glifoPop   {0%{transform:translateY(-50%) scale(.5);opacity:0;}100%{transform:translateY(-50%) scale(1);opacity:.8;}}
+    @keyframes portalOpen {to{opacity:1;}}
+    @keyframes drawPortal {to{stroke-dashoffset:0;}}
   </style>
 </head>
 <body>
 
   <div id="audio-overlay">
-    Tocca per sbloccare il’audio del countdown
+    Tocca per sbloccare l’audio del countdown
   </div>
 
-  <!-- Audio con playsinline per iOS -->
+  <!-- Audio -->
   <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
   <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
   <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline></audio>
@@ -101,8 +98,8 @@
     <div id="countdown">
       <div><span id="days">0</span> Giorni</div>
       <div>
-        <span id="hours">00</span> Ore 
-        <span id="minutes">00</span> Min 
+        <span id="hours">00</span> Ore
+        <span id="minutes">00</span> Min
         <span id="seconds">00</span> Sec
       </div>
     </div>
@@ -111,9 +108,7 @@
   </div>
 
   <div id="portal">
-    <svg viewBox="0 0 200 200">
-      <circle cx="100" cy="100" r="80"/>
-    </svg>
+    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80"/></svg>
   </div>
 
   <script>
@@ -136,18 +131,18 @@
     };
 
     // Sblocco audio
-    function unlockAllAudio() {
+    function unlockAllAudio(){
       Object.values(sounds).forEach(aud=>{
-        aud.play().then(()=>{ aud.pause(); aud.currentTime=0; }).catch(()=>{});
+        aud.play().then(()=>{aud.pause();aud.currentTime=0;}).catch(()=>{});
       });
     }
 
     const prophecies = [
-      { t: 3*24*3600, text: "I cieli si oscurano..." },
-      { t: 2*24*3600, text: "La morte sopraggiunge dall'alto..." },
-      { t: 1*24*3600, text: "Cerca nelle sabbie..." },
-      { t:    3600,   text: "Il portale si chiude..." },
-      { t:       0,   text: "È il momento di scegliere." }
+      {t:3*24*3600, text:"I cieli si oscurano..."},
+      {t:2*24*3600, text:"La morte sopraggiunge dall'alto..."},
+      {t:1*24*3600, text:"Cerca nelle sabbie..."},
+      {t:   3600,   text:"Il portale si chiude..."},
+      {t:      0,   text:"È il momento di scegliere."}
     ];
     const glifiFiles = [
       'glifi-maya-1.png','glifi-maya-2.png','glifi-maya-3.png',
@@ -157,26 +152,23 @@
 
     // Date fisse
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T10:15:00');
+    const endDate   = new Date('2025-06-17T10:20:00');
 
     let manualOverride   = false;
     let audioEnabled     = false;
     let heartbeatPlayed  = false;
     let crescendoPlayed  = false;
 
-    // Click overlay per sblocco
+    // Tap per sbloccare
     document.getElementById('audio-overlay').addEventListener('click',()=>{
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
       unlockAllAudio();
-      updateCountdown(); // se sei già sotto i 10s parte subito il battito
+      updateCountdown(); // se già sotto i 20s parte subito il battito
     });
 
     function updateCountdown(){
-      const now  = new Date();
-      let diff   = endDate - now;
-      if(diff < 0) diff = 0;
-
+      const now = new Date(), diff = Math.max(0, endDate - now);
       const days    = Math.floor(diff/1000/3600/24);
       const hours   = Math.floor((diff/1000/3600)%24);
       const minutes = Math.floor((diff/1000/60)%60);
@@ -196,10 +188,9 @@
         }
       }
 
-      // Glifo dinamico
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
-      const idx        = Math.min(daysPassed, glifiFiles.length-1);
+      const idx = Math.min(daysPassed, glifiFiles.length-1);
       EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
 
       EL.secret.textContent = secretCode[seconds % secretCode.length];
@@ -210,37 +201,32 @@
         sounds.tick.play().catch(()=>{});
       }
 
-      // Heartbeat a 10s
-      if(audioEnabled && !heartbeatPlayed && diff/1000 <= 10){
+      // Heartbeat negli ultimi 20s
+      if(audioEnabled && !heartbeatPlayed && diff/1000 <= 20){
         sounds.heartbeat.play().catch(()=>{});
         heartbeatPlayed = true;
       }
 
-      // Crescendo a 5s
+      // Crescendo negli ultimi 5s
       if(audioEnabled && !crescendoPlayed && diff/1000 <= 5){
         sounds.crescendo.play().catch(()=>{});
         crescendoPlayed = true;
       }
 
-      // Bell quando minuti/ore/giorni = 0 ma giorni>0
+      // Campana a inizio ultimo minuto
       if(audioEnabled && seconds===0 && minutes===0 && hours===0 && days>0){
         sounds.bell.play().catch(()=>{});
       }
 
-      // Fine countdown
+      // Fine
       if(diff===0){
         clearInterval(timer);
         EL.portal.classList.add('open');
-        // Ferma tick
         sounds.tick.pause();
-        // Voiceover
-        if(audioEnabled){
-          sounds.voice.play().catch(()=>{});
-        }
+        if(audioEnabled) sounds.voice.play().catch(()=>{});
       }
     }
 
-    // Click sulla profezia
     EL.prophecy.addEventListener('click',()=>{
       const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
       EL.prophecy.textContent = `"${rand.text}"`;
