@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>12.12.12</title>
-    <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="icon" href="favicon.png" type="image/png">
   <!-- Font decorativo -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
   <style>
@@ -11,8 +11,17 @@
       margin: 0; padding: 0; height: 100%;
       font-family: 'Cinzel Decorative', serif;
       background: url('2.jpg') no-repeat center center fixed;
-      background-size: 100% 100%;
+      background-size: cover;              /* → cover per mantenere proporzioni */
       display: flex; align-items: center; justify-content: center;
+    }
+    /* Overlay iniziale per abilitare l’audio su iOS */
+    #audio-overlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.85);
+      color: #ffd700;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 1rem;
+      font-size: 1.5rem; cursor: pointer; z-index: 10;
     }
     #wrapper {
       position: relative; text-align: center;
@@ -33,6 +42,7 @@
       animation: glow 2.5s ease-in-out infinite;
     }
     #countdown span { display: inline-block; min-width: 3ch; }
+
     #prophecy {
       position: absolute; top: -3rem; left: 50%;
       transform: translateX(-50%);
@@ -77,12 +87,17 @@
 </head>
 <body>
 
-  <!-- Audio con autoplay -->
-  <audio id="tick" src="tick.mp3" preload="auto" autoplay playsinline></audio>
-  <audio id="bell" src="bell.mp3" preload="auto"></audio>
-  <audio id="heartbeat" src="heartbeat.mp3" preload="auto"></audio>
-  <audio id="crescendo" src="crescendo.mp3" preload="auto"></audio>
-  <audio id="voice" src="voiceover.mp3" preload="auto"></audio>
+  <!-- Overlay iniziale -->
+  <div id="audio-overlay">
+    Tocca lo schermo per avviare il suono del countdown
+  </div>
+
+  <!-- Audio -->
+  <audio id="tick"     src="tick.mp3"     preload="auto"></audio>
+  <audio id="bell"     src="bell.mp3"     preload="auto"></audio>
+  <audio id="heartbeat"src="heartbeat.mp3"preload="auto"></audio>
+  <audio id="crescendo"src="crescendo.mp3"preload="auto"></audio>
+  <audio id="voice"    src="voiceover.mp3"preload="auto"></audio>
 
   <div id="wrapper">
     <div id="prophecy">"Il tempo degli dei ritorna..."</div>
@@ -99,11 +114,13 @@
   </div>
 
   <div id="portal">
-    <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="80"/></svg>
+    <svg viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="80"/>
+    </svg>
   </div>
 
   <script>
-    // Riferimenti DOM
+    // DOM refs
     const EL = {
       days:     document.getElementById('days'),
       hours:    document.getElementById('hours'),
@@ -122,35 +139,50 @@
       voice:     document.getElementById('voice')
     };
 
-    // Contenuti dinamici
+    // Config dinamico
     const prophecies = [
       { t: 3*24*3600, text: "I cieli si oscurano..." },
-      { t: 2*24*3600, text: "La morte giunge dall'alto..." },
-      { t: 1*24*3600, text: "Cerca sotto le sabbie..." },
-      { t:    3600,   text: "Il portale si chiude..." },
-      { t:       0,   text: "Fai la tua scelta." }
+      { t: 2*24*3600, text: "Il sigillo si allenta..." },
+      { t: 1*24*3600, text: "L’Arca si risveglia..." },
+      { t:    3600,   text: "Il portale si schiude..." },
+      { t:       0,   text: "È arrivato il momento." }
     ];
     const glifiFiles = [
-      '.jpg','.jpg','.jpg'
+      'glifi-maya-1.png','glifi-maya-2.png','glifi-maya-3.png',
+      'glifi-maya-4.png','glifi-maya-5.png','glifi-maya-6.png'
     ];
-    const secretCode = "TRUST-THOT"; //appare al contrario
+    const secretCode = "MAYANGOD";
 
     // Date fisse
-    const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-19T23:50:00');
+    const startDate = new Date('2012-12-09T17:00:00');
+    const endDate   = new Date('2012-12-12T12:12:00');
+
+    // Flag per override manuale profezia
     let manualOverride = false;
+    // Audio abilitato solo dopo tap
+    let audioEnabled   = false;
+
+    // Rimuovi overlay e abilita audio
+    document.getElementById('audio-overlay').addEventListener('click', () => {
+      audioEnabled = true;
+      document.getElementById('audio-overlay').remove();
+      // parte subito un ticchettio
+      sounds.tick.currentTime = 0;
+      sounds.tick.play().catch(()=>{});
+    });
 
     function updateCountdown() {
       const now  = new Date();
       let diff   = endDate - now;
       if (diff < 0) diff = 0;
 
-      // Calcoli
+      // Unità di tempo
       const days    = Math.floor(diff/1000/3600/24);
       const hours   = Math.floor((diff/1000/3600)%24);
       const minutes = Math.floor((diff/1000/60)%60);
       const seconds = Math.floor((diff/1000)%60);
 
+      // Aggiorna DOM
       EL.days.textContent    = days;
       EL.hours.textContent   = String(hours).padStart(2,'0');
       EL.minutes.textContent = String(minutes).padStart(2,'0');
@@ -166,25 +198,28 @@
         }
       }
 
-      // Glifo
+      // Glifo in base ai giorni trascorsi
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
       const idx        = Math.min(daysPassed, glifiFiles.length - 1);
       EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
 
-      // Segreto
+      // Lettera segreta
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
-      // Ticchettio – come l'audio è in autoplay, non serve più controllare tickEnabled
-      sounds.tick.currentTime = 0;
-      sounds.tick.play().catch(()=>{});
+      // Ticchettio ogni secondo, solo se audioEnabled
+      if (audioEnabled) {
+        sounds.tick.currentTime = 0;
+        sounds.tick.play().catch(()=>{});
+      }
 
-      // Altri suoni a soglia
-      if (seconds===0 && minutes===0 && hours===0 && days>0) sounds.bell.play().catch(()=>{});
-      if (diff/1000 <= 10)                         sounds.heartbeat.play().catch(()=>{});
-      if (diff/1000 <= 5)                          sounds.crescendo.play().catch(()=>{});
+      // Effetti sonori a soglia
+      if (seconds===0 && minutes===0 && hours===0 && days>0)
+        sounds.bell.play().catch(()=>{});
+      if (diff/1000 <= 10) sounds.heartbeat.play().catch(()=>{});
+      if (diff/1000 <= 5)  sounds.crescendo.play().catch(()=>{});
 
-      // Apertura portale
+      // Quando finisce
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
@@ -199,7 +234,7 @@
       manualOverride = true;
     });
 
-    // Avvia il loop del countdown
+    // Avvia timer
     const timer = setInterval(updateCountdown, 1000);
     updateCountdown();
   </script>
