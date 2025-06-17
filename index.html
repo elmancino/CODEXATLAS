@@ -11,10 +11,10 @@
       margin: 0; padding: 0; height: 100%;
       font-family: 'Cinzel Decorative', serif;
       background: url('2.jpg') no-repeat center center fixed;
-      background-size: cover;              /* → cover per mantenere proporzioni */
+      background-size: cover;
       display: flex; align-items: center; justify-content: center;
     }
-    /* Overlay iniziale per abilitare l’audio su iOS */
+    /* Overlay iniziale per sblocco audio */
     #audio-overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
       background: rgba(0,0,0,0.85);
@@ -42,7 +42,6 @@
       animation: glow 2.5s ease-in-out infinite;
     }
     #countdown span { display: inline-block; min-width: 3ch; }
-
     #prophecy {
       position: absolute; top: -3rem; left: 50%;
       transform: translateX(-50%);
@@ -79,25 +78,25 @@
     }
 
     @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
-    @keyframes glow { 0%,100%{text-shadow:0 0 5px #deb887;} 50%{text-shadow:0 0 20px #ffd700;} }
+    @keyframes glow  { 0%,100%{text-shadow:0 0 5px #deb887;} 50%{text-shadow:0 0 20px #ffd700;} }
     @keyframes glifoPop { 0%{transform:translateY(-50%) scale(0.5);opacity:0;} 100%{transform:translateY(-50%) scale(1);opacity:0.8;} }
     @keyframes portalOpen { to{opacity:1;} }
-    @keyframes drawPortal { to{stroke-dashoffset:0;} }
+    @keyframes drawPortal  { to{stroke-dashoffset:0;} }
   </style>
 </head>
 <body>
 
   <!-- Overlay iniziale -->
   <div id="audio-overlay">
-    Clicca e vedrai la fine del ciclo
+    Tocca per sbloccare il suono del countdown
   </div>
 
-  <!-- Audio -->
-  <audio id="tick"     src="tick.mp3"     preload="auto"></audio>
-  <audio id="bell"     src="bell.mp3"     preload="auto"></audio>
-  <audio id="heartbeat"src="heartbeat.mp3"preload="auto"></audio>
-  <audio id="crescendo"src="crescendo.mp3"preload="auto"></audio>
-  <audio id="voice"    src="voiceover.mp3"preload="auto"></audio>
+  <!-- Audio con playsinline per iOS -->
+  <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
+  <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
+  <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline></audio>
+  <audio id="crescendo" src="crescendo.mp3" preload="auto" playsinline></audio>
+  <audio id="voice"     src="voiceover.mp3" preload="auto" playsinline></audio>
 
   <div id="wrapper">
     <div id="prophecy">"Il tempo degli dei ritorna..."</div>
@@ -120,7 +119,7 @@
   </div>
 
   <script>
-    // DOM refs
+    // Riferimenti DOM
     const EL = {
       days:     document.getElementById('days'),
       hours:    document.getElementById('hours'),
@@ -139,7 +138,7 @@
       voice:     document.getElementById('voice')
     };
 
-    // Config dinamico
+    // Configurazioni
     const prophecies = [
       { t: 3*24*3600, text: "I cieli si oscurano..." },
       { t: 2*24*3600, text: "La morte sopraggiunge dall'alto..." },
@@ -153,30 +152,34 @@
     ];
     const secretCode = "TRUST - THOT";
 
-    // Date fisse
+    // Date fisse di esempio
     const startDate = new Date('2025-06-16T17:00:00');
-    const endDate   = new Date('2025-06-17T09:52:00');
+    const endDate   = new Date('2025-06-17T09:58:00');
 
-    // Flag per override manuale profezia
     let manualOverride = false;
-    // Audio abilitato solo dopo tap
     let audioEnabled   = false;
 
-    // Rimuovi overlay e abilita audio
+    // Sblocco e “unlock” di tutti gli audio al primo tap
     document.getElementById('audio-overlay').addEventListener('click', () => {
       audioEnabled = true;
       document.getElementById('audio-overlay').remove();
-      // parte subito un ticchettio
+      // per sbloccare tutti i file audio
+      Object.values(sounds).forEach(aud => {
+        aud.play()
+           .then(() => { aud.pause(); aud.currentTime = 0; })
+           .catch(()=>{});
+      });
+      // subito un ticchettio
       sounds.tick.currentTime = 0;
       sounds.tick.play().catch(()=>{});
     });
 
     function updateCountdown() {
-      const now  = new Date();
-      let diff   = endDate - now;
+      const now = new Date();
+      let diff  = endDate - now;
       if (diff < 0) diff = 0;
 
-      // Unità di tempo
+      // Calcolo tempi
       const days    = Math.floor(diff/1000/3600/24);
       const hours   = Math.floor((diff/1000/3600)%24);
       const minutes = Math.floor((diff/1000/60)%60);
@@ -188,7 +191,7 @@
       EL.minutes.textContent = String(minutes).padStart(2,'0');
       EL.seconds.textContent = String(seconds).padStart(2,'0');
 
-      // Profezia automatica se non cliccata
+      // Profezie automatiche
       if (!manualOverride) {
         for (let p of prophecies) {
           if (diff/1000 <= p.t) {
@@ -198,7 +201,7 @@
         }
       }
 
-      // Glifo in base ai giorni trascorsi
+      // Glifo dinamico
       const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
       const daysPassed = totalDays - days;
       const idx        = Math.min(daysPassed, glifiFiles.length - 1);
@@ -207,34 +210,34 @@
       // Lettera segreta
       EL.secret.textContent = secretCode[seconds % secretCode.length];
 
-      // Ticchettio ogni secondo, solo se audioEnabled
+      // Audio (solo se sbloccato)
       if (audioEnabled) {
         sounds.tick.currentTime = 0;
         sounds.tick.play().catch(()=>{});
+        if (seconds===0 && minutes===0 && hours===0 && days>0)
+          sounds.bell.play().catch(()=>{});
+        if (diff/1000 <= 10)
+          sounds.heartbeat.play().catch(()=>{});
+        if (diff/1000 <= 5)
+          sounds.crescendo.play().catch(()=>{});
       }
 
-      // Effetti sonori a soglia
-      if (seconds===0 && minutes===0 && hours===0 && days>0)
-        sounds.bell.play().catch(()=>{});
-      if (diff/1000 <= 10) sounds.heartbeat.play().catch(()=>{});
-      if (diff/1000 <= 5)  sounds.crescendo.play().catch(()=>{});
-
-      // Quando finisce
+      // Fine countdown
       if (diff === 0) {
         clearInterval(timer);
         EL.portal.classList.add('open');
-        sounds.voice.play().catch(()=>{});
+        if (audioEnabled)
+          sounds.voice.play().catch(()=>{});
       }
     }
 
-    // Click per frase casuale
+    // Click profezia
     EL.prophecy.addEventListener('click', () => {
-      const rand = prophecies[Math.floor(Math.random() * prophecies.length)];
+      const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
       EL.prophecy.textContent = `"${rand.text}"`;
       manualOverride = true;
     });
 
-    // Avvia timer
     const timer = setInterval(updateCountdown, 1000);
     updateCountdown();
   </script>
