@@ -1,302 +1,172 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>12.12.12</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071116">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/appicon-192.png">
+  <meta name="description" content="Codex Atlas. Il tempo degli dèi ritorna. 12.12.12, ore 12:12.">
+  <title>12.12.12 | Codex Atlas</title>
   <link rel="icon" href="favicon.png" type="image/png">
-  <!-- Font decorativo -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
-  <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      font-family: 'Cinzel Decorative', serif;
-      background: url('2.jpg') no-repeat center center fixed;
-      background-size: cover;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #audio-overlay {
-      position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.85); color: #ffd700;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center; padding: 1rem; font-size: 1.5rem;
-      cursor: pointer; z-index: 10;
-    }
-    #wrapper {
-      position: relative; text-align: center;
-      width:100%; max-width:600px;
-      animation: pulse 4s ease-in-out infinite;
-      transform-origin:center center; overflow:visible;
-    }
-    #countdown {
-      background: rgba(0,0,0,0.7);
-      padding:2rem 3rem; border:4px solid #deb887;
-      border-radius:12px; box-shadow:0 0 25px rgba(0,0,0,0.7);
-      z-index:2;
-    }
-    #countdown div {
-      margin:.5rem 0; font-size:2rem;
-      animation: glow 2.5s ease-in-out infinite;
-    }
-    #countdown span { display:inline-block; min-width:3ch; }
-    #prophecy {
-      position:absolute; top:-3rem; left:50%;
-      transform:translateX(-50%);
-      font-size:1.5rem; color:#ffd700;
-      text-shadow:0 0 10px #ffd700;
-      animation: glow 3s ease-in-out infinite;
-      cursor:pointer; white-space:nowrap; z-index:3;
-    }
-    #glifo {
-      position:absolute; top:50%; right:-4rem;
-      width:4rem; height:4rem;
-      background-size:contain; background-repeat:no-repeat;
-      opacity:.8; animation:glifoPop 1s ease-out forwards;
-    }
-    #secret {
-      position:absolute; bottom:-2rem; left:50%;
-      transform:translateX(-50%);
-      font-size:1.2rem; color:rgba(255,255,255,0.8);
-      letter-spacing:.5rem; animation: glow 4s ease-in-out infinite;
-      z-index:3;
-    }
-    #portal {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.9);
-      display:flex; align-items:center; justify-content:center;
-      opacity:0; pointer-events:none; z-index:5;
-    }
-    #portal.open { animation:portalOpen 3s ease-out forwards; }
-
-    /* nuovo wrapper per svg+testo */
-    #portal-content {
-      position: relative;
-      width: 50vmin;
-      height: 50vmin;
-    }
-    #portal svg {
-      width: 100%;
-      height: 100%;
-      fill: none; stroke: #ffd700; stroke-width: 10;
-      stroke-dasharray: 1000; stroke-dashoffset: 1000;
-      animation: drawPortal 3s ease-out forwards .5s;
-    }
-    #portal-text {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      color: #ffd700;
-      pointer-events: none;
-      font-family: 'Cinzel Decorative', serif;
-    }
-    #portal-text .line1 {
-      font-size: 4vmin;
-      line-height: 1;
-    }
-    #portal-text .line2 {
-      font-size: 3vmin;
-      line-height: 1;
-      margin-top: 0.2em;
-    }
-
-    @keyframes pulse      {0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
-    @keyframes glow       {0%,100%{text-shadow:0 0 5px #deb887;}50%{text-shadow:0 0 20px #ffd700;}}
-    @keyframes glifoPop   {0%{transform:translateY(-50%) scale(.5);opacity:0;}100%{transform:translateY(-50%) scale(1);opacity:.8;}}
-    @keyframes portalOpen {to{opacity:1;}}
-    @keyframes drawPortal {to{stroke-dashoffset:0;}}
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="config.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-
-  <div id="audio-overlay">Avvia e vedrai la fine</div>
-
-  <!-- Audio -->
-  <audio id="tick"      src="tick.mp3"      preload="auto" playsinline></audio>
-  <audio id="bell"      src="bell.mp3"      preload="auto" playsinline></audio>
-  <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline loop></audio>
-  <audio id="crescendo" src="crescendo.mp3" preload="auto" playsinline></audio>
-  <audio id="voice"     src="voiceover.mp3" preload="auto" playsinline></audio>
-  <audio id="nuke"      src="nuke.mp3"      preload="auto" playsinline></audio>
-
-  <div id="wrapper">
-    <div id="prophecy">"Il tempo degli dei ritorna..."</div>
-    <div id="countdown">
-      <div><span id="days">0</span> Giorni</div>
-      <div>
-        <span id="hours">00</span> Ore
-        <span id="minutes">00</span> Min
-        <span id="seconds">00</span> Sec
-      </div>
-    </div>
-    <div id="glifo"></div>
-    <div id="secret"></div>
+  <div class="scenery" aria-hidden="true">
+    <div class="scenery__image"></div>
+    <div class="scenery__veil"></div>
+    <div class="scenery__halo"></div>
+    <canvas id="particles"></canvas>
+    <div class="scenery__grain"></div>
+    <div class="scenery__vignette"></div>
   </div>
 
-  <div id="portal">
-    <div id="portal-content">
-      <svg viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="80"/>
+  <main class="site-shell" id="site-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Codex Atlas, pagina iniziale">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 60 60" fill="none">
+            <path d="M30 3 55 45H5L30 3Z" stroke="currentColor" stroke-width="1.5" />
+            <path d="M30 15 46 42H14L30 15Z" stroke="currentColor" stroke-width=".75" opacity=".65"/>
+            <circle cx="30" cy="32" r="8" stroke="currentColor" stroke-width="1.3"/>
+            <circle cx="30" cy="32" r="2" fill="currentColor"/>
+            <path d="M30 3V58M2 32H58" stroke="currentColor" stroke-width=".8" opacity=".35"/>
+          </svg>
+        </span>
+        <span class="brand__wordmark"><strong>CODEX</strong><small>ATLAS</small></span>
+      </a>
+      <div class="topbar__right">
+        <span class="topbar__classification">TRASMISSIONE RISERVATA</span>
+        <button class="round-control" id="share-toggle" type="button" aria-label="Condividi il countdown" aria-expanded="false" aria-controls="share-panel" title="Condividi il countdown" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.3 10.8 7.4-4.6M8.3 13.2l7.4 4.6"/></svg>
+        </button>
+        <button class="round-control" id="sound-toggle" type="button" aria-label="Attiva o disattiva l'audio" aria-pressed="false" title="Audio">
+          <svg id="sound-on-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9H2v6h3l5 4V5L5 9ZM14 9a5 5 0 0 1 0 6M17 6a9 9 0 0 1 0 12"/></svg>
+          <svg id="sound-off-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9H2v6h3l5 4V5L5 9ZM15 9l6 6m0-6-6 6"/></svg>
+        </button>
+        <button class="round-control" id="fullscreen-toggle" type="button" aria-label="Attiva la modalità schermo intero" title="Schermo intero">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5m13-5v5h-5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="countdown-section" aria-label="Conto alla rovescia">
+      <div class="sigil-orbit" aria-hidden="true">
+        <div class="sigil-orbit__outer"></div>
+        <div class="sigil-orbit__inner"></div>
+        <div class="sigil-orbit__tick sigil-orbit__tick--a"></div>
+        <div class="sigil-orbit__tick sigil-orbit__tick--b"></div>
+      </div>
+
+      <div class="section-kicker"><span class="section-kicker__line"></span><span>IL CICLO SI STA CHIUDENDO</span><span class="section-kicker__line"></span></div>
+      <h1 class="main-title">12<span class="main-title__dot">.</span>12<span class="main-title__dot">.</span>12</h1>
+      <p class="main-subtitle">QUANDO IL TEMPO FINIRÀ, LA VERITÀ RIEMERGERÀ.</p>
+
+      <div class="timer-block" id="timer-block">
+        <div class="timer-block__topline"><span>TEMPO PREVISTO PER L'IMPATTO</span></div>
+        <div class="time-grid" role="timer" aria-label="Tempo restante">
+          <div class="time-unit"><div class="time-unit__digits" id="days">00</div><div class="time-unit__label">GIORNI</div><div class="time-unit__rune">◈</div></div>
+          <div class="time-separator" aria-hidden="true">:</div>
+          <div class="time-unit"><div class="time-unit__digits" id="hours">00</div><div class="time-unit__label">ORE</div><div class="time-unit__rune">⌖</div></div>
+          <div class="time-separator" aria-hidden="true">:</div>
+          <div class="time-unit"><div class="time-unit__digits" id="minutes">00</div><div class="time-unit__label">MINUTI</div><div class="time-unit__rune">◇</div></div>
+          <div class="time-separator" aria-hidden="true">:</div>
+          <div class="time-unit time-unit--seconds"><div class="time-unit__digits" id="seconds">00</div><div class="time-unit__label">SECONDI</div><div class="time-unit__rune">✧</div></div>
+        </div>
+        <div class="timer-block__bottomline">
+          <span class="status"><span class="status__light"></span><span id="timer-status">SEGNALE AGGANCIATO</span></span>
+          <span id="percentage" class="timer-block__percentage">000.0% / CICLO</span>
+        </div>
+        <div class="progress" aria-hidden="true"><div id="progress-fill" class="progress__fill"></div></div>
+      </div>
+
+      <div class="prophecy-area" id="prophecy-area">
+        <div class="prophecy-area__glyph prophecy-area__glyph--maya" id="glifo" aria-hidden="true">
+          <span class="glyph-aura"></span>
+          <span class="glyph-halo"></span>
+          <img src="assets/calendario-maya.png" class="glyph-image" alt="" width="385" height="385" draggable="false">
+          <span class="glyph-satellite"></span>
+        </div>
+        <div class="prophecy-area__content">
+          <span class="eyebrow">FRAMMENTO DELLA PROFEZIA</span>
+          <button class="prophecy-area__text" id="prophecy" type="button" aria-label="Leggi un altro presagio" title="Mostra un altro presagio">«Il tempo degli dèi ritorna...»</button>
+        </div>
+        <div class="prophecy-area__glyph prophecy-area__glyph--solar" aria-hidden="true">
+          <span class="glyph-aura"></span>
+          <span class="glyph-halo"></span>
+          <img src="assets/sole-nero.png" class="glyph-image" alt="" width="385" height="385" draggable="false">
+          <span class="glyph-satellite"></span>
+        </div>
+      </div>
+    </section>
+
+  <form id="deadline-form" class="deadline-panel" aria-label="Imposta una nuova data per il conto alla rovescia" hidden>
+    <div class="deadline-panel__heading">
+      <span class="deadline-panel__dot" aria-hidden="true"></span>
+      <span>IL COUNTDOWN È TERMINATO</span>
+      <span class="deadline-panel__detail">IMPOSTA IL PROSSIMO IMPATTO</span>
+    </div>
+    <div class="deadline-panel__fields">
+      <label class="deadline-panel__field" for="deadline-date"><span>DATA</span><input id="deadline-date" name="deadline-date" type="date" required></label>
+      <label class="deadline-panel__field" for="deadline-time"><span>ORA</span><input id="deadline-time" name="deadline-time" type="time" required step="60"></label>
+      <button class="deadline-panel__submit" type="submit"><span>ATTIVA COUNTDOWN</span><span aria-hidden="true">↗</span></button>
+    </div>
+    <p class="deadline-panel__note">Dopo l'attivazione potrai copiare il link da inviare ai giocatori.</p>
+    <p id="deadline-error" class="deadline-panel__error" role="alert" hidden></p>
+  </form>
+  <section id="share-panel" class="share-panel" aria-label="Condividi il conto alla rovescia" hidden>
+    <div class="share-panel__heading">
+      <span><span class="share-panel__dot" aria-hidden="true"></span> LINK DEL COUNTDOWN PRONTO</span>
+      <button type="button" id="share-close" class="share-panel__close" aria-label="Chiudi il pannello di condivisione" title="Chiudi">×</button>
+    </div>
+    <div class="share-panel__row">
+      <label for="share-url" class="visually-hidden">Link condivisibile del countdown</label>
+      <input type="text" id="share-url" readonly spellcheck="false" autocomplete="off" aria-label="Link da inviare ai giocatori">
+      <button type="button" id="share-copy" class="share-panel__copy">COPIA LINK <span aria-hidden="true">↗</span></button>
+    </div>
+    <p id="share-feedback" class="share-panel__note" role="status" aria-live="polite">Chi apre questo link vedrà la stessa scadenza.</p>
+  </section>
+    <footer class="site-footer">
+      <div class="secret-channel" aria-label="Trasmissione cifrata in corso">
+        <span class="secret-channel__indicator"><i></i> SEGNALE CRIPTATO</span>
+        <span id="secret" class="secret-channel__character" aria-live="off">·</span>
+        <span class="secret-channel__bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+    </footer>
+  </main>
+
+  <div id="screen-notice" class="screen-notice" role="status" aria-live="polite" hidden></div>
+  <div class="end-flash" id="end-flash" aria-hidden="true"></div>
+  <div id="portal" class="portal" aria-hidden="true">
+    <canvas id="portal-particles" aria-hidden="true"></canvas>
+    <div class="portal__aura" aria-hidden="true"></div>
+    <div class="portal__center">
+      <svg class="portal__rings" viewBox="0 0 500 500" fill="none" aria-hidden="true">
+        <circle class="portal__outer-ring" cx="250" cy="250" r="223" stroke="currentColor" stroke-width="1" stroke-dasharray="2 10"/>
+        <circle class="portal__mid-ring" cx="250" cy="250" r="200" stroke="currentColor" stroke-width="2" stroke-dasharray="8 5 2 7"/>
+        <circle class="portal__main-ring" cx="250" cy="250" r="173" stroke="currentColor" stroke-width="4"/>
+        <circle class="portal__inner-ring" cx="250" cy="250" r="153" stroke="currentColor" stroke-width=".8"/>
+        <path d="M250 24v40M250 436v40M24 250h40M436 250h40" stroke="currentColor" stroke-width="2"/>
+        <path d="m97 97 28 28m250 250 28 28M403 97l-28 28M125 375l-28 28" stroke="currentColor" stroke-width="1.2"/>
       </svg>
-      <div id="portal-text">
-        <div class="line1">12-12-12</div>
-        <div class="line2">12:12</div>
-      </div>
+      <div class="portal__words"><span>IL CICLO È COMPLETO</span><strong>12-12-12</strong><strong>12:12</strong><small>IL TEMPO È SCADUTO</small></div>
     </div>
+    <div class="portal__closing">CODEX ATLAS <span>✦</span> FINIS TEMPORIS</div>
+    <button id="portal-new-countdown" class="portal__restart" type="button">IMPOSTA UN NUOVO COUNTDOWN</button>
   </div>
 
-  <script>
-    const EL = {
-      days:     document.getElementById('days'),
-      hours:    document.getElementById('hours'),
-      minutes:  document.getElementById('minutes'),
-      seconds:  document.getElementById('seconds'),
-      prophecy: document.getElementById('prophecy'),
-      glifo:    document.getElementById('glifo'),
-      secret:   document.getElementById('secret'),
-      portal:   document.getElementById('portal')
-    };
-    const sounds = {
-      tick:      document.getElementById('tick'),
-      bell:      document.getElementById('bell'),
-      heartbeat: document.getElementById('heartbeat'),
-      crescendo: document.getElementById('crescendo'),
-      voice:     document.getElementById('voice'),
-      nuke:      document.getElementById('nuke')
-    };
-
-    function unlockAllAudio() {
-      Object.values(sounds).forEach(aud => {
-        aud.play().then(() => { aud.pause(); aud.currentTime = 0; }).catch(()=>{});
-      });
-    }
-
-    const prophecies = [
-      { t:3*24*3600, text:"I cieli si oscurano..." },
-      { t:2*24*3600, text:"La morte sopraggiunge dall'alto..." },
-      { t:1*24*3600, text:"Cerca nelle sabbie..." },
-      { t:   3600,   text:"Il portale si chiude..." },
-      { t:      0,   text:"È il momento di scegliere." }
-    ];
-    const glifiFiles = [
-      'glifi-maya-1.png','glifi-maya-2.png','glifi-maya-3.png',
-      'glifi-maya-4.png','glifi-maya-5.png','glifi-maya-6.png'
-    ];
-    const secretCode = "TRUST-THOT";
-/* CAMBIARE LA DATA QUI MANDANDOLA 24H INDIETRO RISPETTO ALLA DATA DI CHIUSURA */
-    const startDate = new Date('2026-02-12T16:00:00');
-    const endDate   = new Date('2026-02-16T00:00:00');
-
-    let manualOverride   = false;
-    let audioEnabled     = false;
-    let bellPlayed       = false;
-    let crescendoPlayed  = false;
-    let heartbeatStarted = false;
-
-    document.getElementById('audio-overlay').addEventListener('click', () => {
-      audioEnabled = true;
-      document.getElementById('audio-overlay').remove();
-      unlockAllAudio();
-      updateCountdown();
-    });
-
-    sounds.voice.addEventListener('ended', () => {
-      if (audioEnabled) sounds.nuke.play().catch(()=>{});
-    });
-
-    function updateCountdown() {
-      const now = new Date();
-      let diff  = endDate - now;
-      if (diff < 0) diff = 0;
-
-      const days    = Math.floor(diff/1000/3600/24);
-      const hours   = Math.floor((diff/1000/3600)%24);
-      const minutes = Math.floor((diff/1000/60)%60);
-      const seconds = Math.floor((diff/1000)%60);
-
-      EL.days.textContent    = days;
-      EL.hours.textContent   = String(hours).padStart(2,'0');
-      EL.minutes.textContent = String(minutes).padStart(2,'0');
-      EL.seconds.textContent = String(seconds).padStart(2,'0');
-
-      if (!manualOverride) {
-        for (let p of prophecies) {
-          if (diff/1000 <= p.t) {
-            EL.prophecy.textContent = `"${p.text}"`;
-            break;
-          }
-        }
-      }
-
-      const totalDays  = Math.ceil((endDate - startDate)/1000/3600/24);
-      const daysPassed = totalDays - days;
-      const idx        = Math.min(daysPassed, glifiFiles.length-1);
-      EL.glifo.style.backgroundImage = `url('${glifiFiles[idx]}')`;
-
-      EL.secret.textContent = secretCode[seconds % secretCode.length];
-
-      // Tick
-      if (audioEnabled && diff > 0) {
-        sounds.tick.currentTime = 0;
-        sounds.tick.play().catch(()=>{});
-      }
-
-      // Bell a 60s per 3s
-      if (audioEnabled && !bellPlayed && diff/1000 <= 60) {
-        bellPlayed = true;
-        sounds.bell.currentTime = 0;
-        sounds.bell.play().catch(()=>{});
-        setTimeout(() => {
-          sounds.bell.pause();
-          sounds.bell.currentTime = 0;
-        }, 3000);
-      }
-
-      // Heartbeat a 30s (una sola volta), poi loopa
-      if (audioEnabled && !heartbeatStarted && diff/1000 <= 30) {
-        heartbeatStarted = true;
-        sounds.heartbeat.currentTime = 0;
-        sounds.heartbeat.play().catch(()=>{});
-      }
-
-      // Crescendo a 5s
-      if (audioEnabled && !crescendoPlayed && diff/1000 <= 5) {
-        crescendoPlayed = true;
-        sounds.crescendo.currentTime = 0;
-        sounds.crescendo.play().catch(()=>{});
-      }
-
-      // Fine
-      if (diff === 0) {
-        clearInterval(timer);
-        EL.portal.classList.add('open');
-        sounds.tick.pause();
-        sounds.heartbeat.pause();
-        sounds.heartbeat.currentTime = 0;
-        if (audioEnabled) {
-          sounds.voice.currentTime = 0;
-          sounds.voice.play().catch(()=>{});
-        }
-      }
-    }
-
-    EL.prophecy.addEventListener('click', () => {
-      const rand = prophecies[Math.floor(Math.random()*prophecies.length)];
-      EL.prophecy.textContent = `"${rand.text}"`;
-      manualOverride = true;
-    });
-
-    const timer = setInterval(updateCountdown, 1000);
-    updateCountdown();
-  </script>
-
+  <audio id="tick" src="tick.mp3" preload="auto" playsinline></audio>
+  <audio id="bell" src="bell.mp3" preload="auto" playsinline></audio>
+  <audio id="heartbeat" src="heartbeat.mp3" preload="auto" playsinline loop></audio>
+  <audio id="voice" src="voiceover.mp3" preload="auto" playsinline></audio>
+  <audio id="nuke" src="nuke.mp3" preload="auto" playsinline></audio>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
