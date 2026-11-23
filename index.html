@@ -102,6 +102,34 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--gold-light); ou
 .prophecy-area__glyph svg { width: 100%; height: 100%; }
 .prophecy-area__glyph--mirror { opacity: .7; animation-delay: -2s; }
 .prophecy-area__content { display: flex; flex-direction: column; min-width: 0; align-items: center; }
+@media (min-width: 681px) {
+  .prophecy-area {
+    position: relative;
+    min-height: 155px;
+    max-width: 980px;
+    margin-top: 24px;
+    gap: 0;
+  }
+  .prophecy-area__content {
+    position: relative;
+    z-index: 2;
+    max-width: 520px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .prophecy-area__glyph {
+    position: absolute;
+    top: clamp(54px, 7.5vh, 84px);
+    width: clamp(82px, 8.2vw, 112px);
+    height: clamp(82px, 8.2vw, 112px);
+  }
+  .prophecy-area__glyph--maya {
+    left: clamp(6px, 9vw, 150px);
+  }
+  .prophecy-area__glyph--solar {
+    right: clamp(6px, 9vw, 150px);
+  }
+}
 .eyebrow { font: 9px var(--mono); letter-spacing: .27em; color: #b9ad99; }
 .prophecy-area__text { margin: 8px 0 5px; background: none; border: none; color: #f4d49e; font: 400 clamp(17px,2.6vw,27px)/1.45 var(--serif); text-shadow: 0 0 23px rgba(238,173,85,.27), 0 3px 10px black; cursor: pointer; text-wrap: balance; transition: color .2s, text-shadow .2s; }
 .prophecy-area__text:hover { color: #fff2d5; text-shadow: 0 0 30px rgba(255,197,103,.5); }
@@ -479,7 +507,8 @@ body.expired-awaiting-date .site-footer { visibility: hidden; }
 body.expired-awaiting-date .prophecy-area { transform: translateY(-19px); }
 .portal__restart { position: absolute; bottom: max(9%, 52px); z-index: 8; border: 1px solid rgba(235,190,117,.65); color: #f8dbac; background: rgba(20,28,29,.85); padding: 13px 22px; font: 10px var(--mono); letter-spacing: .13em; cursor: pointer; opacity: 0; pointer-events: none; transition: background .2s; }
 .portal__restart:hover { background: rgba(120,84,42,.42); }
-.portal.open .portal__restart { animation: fade-up 1s 4.6s both; pointer-events: auto; }
+.portal.open .portal__restart { animation: none; }
+.portal.portal--restart-ready .portal__restart { animation: fade-up 1s both; opacity: 1; pointer-events: auto; }
 .portal.open .portal__closing { bottom: 3%; }
 @media (max-width: 680px) {
   .deadline-panel { position: relative; margin: 10px auto 16px; left: auto; bottom: auto; transform: none; width: calc(100% - 28px); padding: 14px; animation: panel-enter .5s both; }
@@ -549,7 +578,7 @@ body.expired-awaiting-date .prophecy-area { transform: translateY(-19px); }
   .share-panel__note { text-align:center; font-size:10px; }
 }
 
-#new-date-toggle { color: var(--gold-light); }
+#new-date-toggle { display: none !important; color: var(--gold-light); }
 #new-date-toggle:hover { background: rgba(216,173,96,.22); }
 
 </style>
@@ -856,6 +885,7 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
   let lastSigil = -1;
   let lastSecret = '';
   let soundContext = null;
+  let restartRevealTimer = null;
   const soundVolume = Math.max(0, Math.min(1, Number(config.soundVolume ?? 0.7)));
   Object.entries(audio).forEach(([name, el]) => {
     const volumes = { tick: .16, bell: .54, heartbeat: .8, voice: 1, nuke: .84 };
@@ -920,6 +950,26 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
     window.setTimeout(() => { try { filter.disconnect(); gain.disconnect(); } catch (_) {} }, 5500);
   }
 
+  function hidePortalRestart() {
+    if (!ui.portal || !ui.portalRestart) return;
+    ui.portal.classList.remove('portal--restart-ready');
+    ui.portalRestart.disabled = true;
+  }
+  function revealPortalRestart() {
+    if (!ui.portal || !ui.portalRestart) return;
+    ui.portal.classList.add('portal--restart-ready');
+    ui.portalRestart.disabled = false;
+  }
+  function schedulePortalRestartReveal() {
+    if (restartRevealTimer) clearTimeout(restartRevealTimer);
+    hidePortalRestart();
+    const voiceMs = Number.isFinite(audio.voice?.duration) && audio.voice.duration > 0 ? audio.voice.duration * 1000 : 5000;
+    const nukeMs = Number.isFinite(audio.nuke?.duration) && audio.nuke.duration > 0 ? audio.nuke.duration * 1000 : 37200;
+    restartRevealTimer = window.setTimeout(() => {
+      if (hasEnded) revealPortalRestart();
+    }, Math.ceil(voiceMs + nukeMs + 800));
+  }
+
   function updateNumber(el, number, pad = true) {
     const value = pad ? String(number).padStart(2, '0') : String(number);
     if (el.textContent === value) return;
@@ -973,7 +1023,8 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
     ui.endFlash.classList.add('burst');
     ui.portal.classList.add('open');
     ui.portal.setAttribute('aria-hidden', 'false');
-    ui.portalRestart.disabled = false;
+    hidePortalRestart();
+    schedulePortalRestartReveal();
     startPortalParticles();
     playSound('voice', true);
   }
@@ -1055,10 +1106,11 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
     portalAnimationStarted = false;
     portalStars = [];
     document.body.classList.remove('at-end', 'near-end', 'expired-awaiting-date');
-    ui.portal.classList.remove('open');
+    ui.portal.classList.remove('open', 'portal--restart-ready');
     ui.portal.setAttribute('aria-hidden', 'true');
     ui.endFlash.classList.remove('burst');
     ui.dateForm.hidden = true;
+    if (restartRevealTimer) { clearTimeout(restartRevealTimer); restartRevealTimer = null; }
     Object.keys(audio).forEach(name => pauseSound(name, true));
     updateCountdown();
   }
@@ -1091,7 +1143,7 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
 
   // L'autore può azzerare il countdown anche se è già attivo un link precedente.
   // L'operazione riguarda questo browser; i link già inviati restano immutati.
-  ui.newDateToggle.addEventListener('click', () => {
+  if (ui.newDateToggle) ui.newDateToggle.addEventListener('click', () => {
     try { window.localStorage.removeItem(dateStorageKey); } catch (_) {}
     window.history.replaceState(null, '', window.location.pathname);
     startDate = new Date('2026-02-12T16:00:00');
@@ -1100,9 +1152,10 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
     hasEnded = false;
     initialExpired = true;
     lastDisplayed = -1;
-    ui.portal.classList.remove('open');
+    ui.portal.classList.remove('open', 'portal--restart-ready');
     ui.portal.setAttribute('aria-hidden', 'true');
     ui.endFlash.classList.remove('burst');
+    if (restartRevealTimer) { clearTimeout(restartRevealTimer); restartRevealTimer = null; }
     document.body.classList.remove('at-end','near-end');
     Object.keys(audio).forEach(name => pauseSound(name, true));
     hideSharePanel();
@@ -1136,7 +1189,8 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
     if (copied) showNotice('Link del countdown copiato negli appunti.');
   });
   ui.portalRestart.addEventListener('click', () => {
-    ui.portal.classList.remove('open');
+    if (restartRevealTimer) { clearTimeout(restartRevealTimer); restartRevealTimer = null; }
+    ui.portal.classList.remove('open', 'portal--restart-ready');
     ui.portal.setAttribute('aria-hidden', 'true');
     ui.endFlash.classList.remove('burst');
     document.body.classList.remove('at-end');
@@ -1194,6 +1248,9 @@ window.CODEX_ATLAS_CONFIG = Object.freeze({
   });
   audio.voice.addEventListener('ended', () => {
     if (hasEnded && soundEnabled) playSound('nuke', true);
+  });
+  audio.nuke.addEventListener('ended', () => {
+    if (hasEnded) revealPortalRestart();
   });
 
   // Polvere, particelle e scie celesti. Riduce il lavoro su mobile e con movimento ridotto.

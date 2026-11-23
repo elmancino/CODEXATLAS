@@ -1,33 +1,17 @@
-# CODEX ATLAS | Countdown v5, link condivisibile
+# CODEX ATLAS | Countdown v7
 
-Sito statico per GitHub Pages. La v5 conserva grafica, countdown, enigmi/profezie, animazioni, effetti audio e portale finale delle versioni precedenti. **Non serve alcun database.**
+Sito statico completo per GitHub Pages. Include HTML, favicon ed effetti audio.
 
-## Novità: la stessa scadenza per tutti
+## Avvio
+Apri `index.html` in un browser, mantenendo tutti i file nella stessa cartella. Per la pubblicazione carica tutti i file nella directory principale della repository `elmancino/CODEXATLAS` e verifica GitHub Settings > Pages (branch `main`, cartella `/root`).
 
-1. Apri il sito pubblico: `https://elmancino.github.io/CODEXATLAS/`.
-2. Quando il vecchio countdown è scaduto, seleziona una **DATA** e un'**ORA** future e premi **ATTIVA COUNTDOWN**.
-3. Compare il riquadro **LINK DEL COUNTDOWN PRONTO**: premi **COPIA LINK** e invialo ai giocatori (per esempio su WhatsApp).
-4. Chi riceve il link vedrà automaticamente la stessa scadenza. **Non deve configurare nulla.**
-5. Puoi riaprire la condivisione premendo il pulsante con tre punti collegati nell'intestazione, anche dopo un ricaricamento della pagina.
+## Funzioni
+- Countdown con data e ora configurabili a scadenza avvenuta.
+- URL condivisibile che contiene data e ora assolute di inizio/fine.
+- Simboli rotanti incorporati nell'HTML, spostati più in basso ai lati della profezia su desktop.
+- Pulsante per creare un nuovo countdown rimosso dalla barra superiore.
+- Pulsante nella schermata finale mostrato dopo la conclusione dei suoni della sequenza (voce ed esplosione), con margine di sicurezza.
+- Interfaccia adattabile a smartphone e tablet.
 
-Il link contiene due date espresse come istanti assoluti ISO 8601 UTC, nei parametri `end` e `start`. Anche chi vive in un fuso diverso visualizza lo **stesso tempo residuo**. Il momento finale è condiviso; l'orologio dei dispositivi deve essere sufficientemente accurato per evitare differenze di alcuni secondi. Le date vengono inoltre conservate nel browser come nella v4.
-
-**Attenzione:** su GitHub Pages il normale URL `https://elmancino.github.io/CODEXATLAS/` **non cambia da solo per gli altri giocatori**. Va condiviso **il link personalizzato generato** (contenente `?end=...&start=...`). Se in futuro cambierai ancora scadenza, dovrai inviare un nuovo link. Per cambiare la data comune sul normale URL senza parametri serve modificare `config.js` nella repository oppure introdurre un database.
-
-Il link copiato punta al dominio pubblico impostato in `config.js` (`publicUrl`), anche se la pagina è aperta in locale. **Pubblica prima la v5 su GitHub Pages e poi condividi il link**; la v4 non è in grado di leggerne i parametri.
-
-## Precedenza delle date
-
-1. Link valido (`end` e `start`): **prevale sempre**, anche se quel browser aveva salvato in precedenza un'altra scadenza.
-2. Preferenza già salvata nel browser: vale quando l'URL non specifica una coppia di date valida.
-3. Date in `config.js`: valore iniziale per chi apre il sito senza link né salvataggi.
-
-Le date predefinite in `config.js` sono scadute: il sito mostrerà la schermata di configurazione come nella v4.
-
-## Pubblicazione su GitHub Pages
-
-Estrai questo ZIP e copia tutti i file (compresa la cartella `assets/`) nella directory principale della repository `CODEXATLAS`, sovrascrivendo la vecchia versione. Esegui il commit sul ramo pubblicato da GitHub Pages. Verifica che l'indirizzo pubblico funzioni e aggiorna il browser con **Ctrl+F5** se mantiene la versione precedente.
-
-## Compatibilità
-
-Il sito resta ottimizzato per PC e smartphone. Lo schermo intero effettivo e l'audio necessitano di un gesto dell'utente per le limitazioni dei browser. Il link viene copiato tramite le API degli appunti, con selezione e copia manuale come alternativa. La modalità demo rimane rimossa.
+## Nota sui browser
+La riproduzione automatica dei suoni può essere bloccata dal browser fino a un'interazione dell'utente. Lo schermo intero effettivo richiede un gesto esplicito dell'utente.
